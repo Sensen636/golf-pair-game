@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b6b3a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Golf Pair">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>4人ゴルフ ペアゲーム</title>
+  <style>
+    :root{
+      --bg:#f4f7f4; --card:#fff; --line:#d7dfd8; --text:#172019; --muted:#657168;
+      --green:#0b6b3a; --green2:#e7f4ec; --red:#b3261e; --shadow:0 6px 24px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+    .app{max-width:1180px;margin:auto;padding:12px 12px 40px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+    h1{font-size:22px;margin:0 0 10px}
+    h2{font-size:18px;margin:0 0 10px}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .namebox label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+    input,select,button{font:inherit}
+    input[type="text"],input[type="number"],select{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px}
+    .mode{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
+    .note{font-size:13px;color:var(--muted);line-height:1.5;margin-top:10px}
+    .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px}
+    table{border-collapse:collapse;min-width:1120px;width:100%;background:#fff}
+    th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px;text-align:center;vertical-align:middle}
+    th{background:#eef4ef;font-size:12px;position:sticky;top:0;z-index:3}
+    th:first-child,td:first-child{position:sticky;left:0;z-index:2;background:#f8fbf8;font-weight:700}
+    th:first-child{z-index:4}
+    td.score input{width:62px;text-align:center;padding:8px 4px}
+    td.point input{width:74px;text-align:center;padding:8px 4px;font-weight:700}
+    .pair{font-weight:700;min-width:160px}
+    .rank{font-size:11px;min-width:210px;text-align:left;line-height:1.5}
+    .outrow td{background:#f3f5f3;font-weight:700}
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .sumcard{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+    .sumname{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sumval{font-size:24px;font-weight:800;margin-top:3px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+    button{border:0;border-radius:10px;padding:10px 14px;font-weight:700}
+    .primary{background:var(--green);color:#fff}
+    .secondary{background:#eef1ee;color:var(--text)}
+    .danger{background:#fff0ef;color:var(--red)}
+    .status{font-size:12px;color:var(--muted);margin-left:auto;align-self:center}
+    .nextbox{background:var(--green2);border:1px solid #bfdcc8;border-radius:12px;padding:10px;margin-top:10px;font-size:14px}
+    @media(max-width:700px){
+      .grid4,.summary{grid-template-columns:repeat(2,1fr)}
+      .app{padding-left:8px;padding-right:8px}
+      .card{padding:10px;border-radius:14px}
+      h1{font-size:20px}
+      .status{width:100%;margin-left:0}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <h1>4人ゴルフ ペアゲーム</h1>
+    <div class="grid4 namebox">
+      <div><label>くじ1番</label><input id="name0" type="text"></div>
+      <div><label>くじ2番</label><input id="name1" type="text"></div>
+      <div><label>くじ3番</label><input id="name2" type="text"></div>
+      <div><label>くじ4番</label><input id="name3" type="text"></div>
+    </div>
+    <div class="mode">
+      <label><input type="radio" name="mode" value="rule"> 規則モード</label>
+      <label><input type="radio" name="mode" value="manual"> 任意モード</label>
+    </div>
+    <div class="note">規則モードでは、次ホールの順位は直前ホールのスコア順。同点ならその前のホール、さらに同点ならさらに前へ遡り、最後まで同じなら最初のくじ順で決めます。</div>
+    <div id="nextPair" class="nextbox"></div>
+  </div>
+
+  <div class="card">
+    <h2>18ホール スコアカード</h2>
+    <div class="scroll">
+      <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ゲーム得点 累計</h2>
+    <div id="gameTotals" class="summary"></div>
+  </div>
+
+  <div class="card">
+    <h2>実スコア 合計</h2>
+    <div id="strokeTotals" class="summary"></div>
+  </div>
+
+  <div class="card toolbar">
+    <button id="saveBtn" class="primary">保存</button>
+    <button id="newBtn" class="danger">新しいラウンド</button>
+    <span id="saveStatus" class="status">自動保存 ON</span>
+  </div>
+</div>
+
+<script>
+(() => {
+  const KEY = 'golf_pair_pwa_v1';
+  const defaultState = () => ({
+    mode:'rule',
+    names:['プレイヤー1','プレイヤー2','プレイヤー3','プレイヤー4'],
+    holes:Array.from({length:18},()=>({strokes:['','','',''],point:'',manualPair:0}))
+  });
+
+  let state = load();
+
+  const patterns = [
+    [[0,1],[2,3]],
+    [[0,2],[1,3]],
+    [[0,3],[1,2]]
+  ];
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return defaultState();
+      const s = JSON.parse(raw);
+      if(!s || !Array.isArray(s.holes) || s.holes.length!==18) return defaultState();
+      return s;
+    }catch(e){ return defaultState(); }
+  }
+
+  function save(show=false){
+    localStorage.setItem(KEY, JSON.stringify(state));
+    if(show){
+      const el=document.getElementById('saveStatus');
+      el.textContent='保存しました';
+      setTimeout(()=>el.textContent='自動保存 ON',1200);
+    }
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function validScore(h,p){
+    const raw=state.holes[h].strokes[p];
+    if(raw==='' || raw===null || raw===undefined) return null;
+    const n=Number(raw);
+    return Number.isFinite(n)?n:null;
+  }
+
+  function comparePlayers(a,b,lastHole){
+    for(let h=lastHole; h>=0; h--){
+      const sa=validScore(h,a), sb=validScore(h,b);
+      if(sa===null || sb===null) continue;
+      if(sa!==sb) return sa-sb;
+    }
+    return a-b; // 最初のくじ順
+  }
+
+  function rankingForHole(h){
+    if(h===0) return [0,1,2,3];
+    return [0,1,2,3].sort((a,b)=>comparePlayers(a,b,h-1));
+  }
+
+  function teamsForHole(h){
+    if(state.mode==='manual') return patterns[state.holes[h].manualPair];
+    const order=rankingForHole(h);
+    const pat=patterns[h%3];
+    return [pat[0].map(i=>order[i]), pat[1].map(i=>order[i])];
+  }
+
+  function pairName(pair){
+    return pair.map(i=>state.names[i] || `プレイヤー${i+1}`).join(' ＋ ');
+  }
+
+  function fmtPoint(n){
+    if(!Number.isFinite(n)) n=0;
+    return n>0 ? '+'+n : String(n);
+  }
+
+  function nextRankingAfter(h){
+    if(h<0) return [0,1,2,3];
+    return [0,1,2,3].sort((a,b)=>comparePlayers(a,b,h));
+  }
+
+  function completeHole(h){
+    return [0,1,2,3].every(p=>validScore(h,p)!==null);
+  }
+
+  function manualOptions(selected){
+    return patterns.map((p,i)=>{
+      const a=pairName(p[0]), b=pairName(p[1]);
+      return `<option value="${i}" ${i===selected?'selected':''}>${esc(a)} vs ${esc(b)}</option>`;
+    }).join('');
+  }
+
+  function renderHeader(){
+    document.getElementById('thead').innerHTML = `
+      <tr>
+        <th>H</th>
+        ${state.names.map(n=>`<th>${esc(n || '')}</th>`).join('')}
+        <th>次順位</th>
+        <th>ペアA</th>
+        <th>A得点</th>
+        <th>ペアB</th>
+        <th>B得点</th>
+      </tr>`;
+  }
+
+  function renderRows(){
+    let html='';
+    for(let h=0; h<18; h++){
+      const teams=teamsForHole(h);
+      const pRaw=state.holes[h].point;
+      const p = pRaw==='' ? 0 : Number(pRaw)||0;
+      const next = h===17 ? '終了' :
+        (completeHole(h)
+          ? nextRankingAfter(h).map((pl,i)=>`${i+1}:${state.names[pl]}`).join(' / ')
+          : 'スコア入力後に確定');
+
+      html += `<tr>
+        <td>${h+1}</td>
+        ${[0,1,2,3].map(pl=>`
+          <td class="score"><input type="number" inputmode="numeric" min="1" max="30"
+            data-kind="score" data-hole="${h}" data-player="${pl}" value="${esc(state.holes[h].strokes[pl])}" placeholder="-"></td>
+        `).join('')}
+        <td class="rank">${esc(next)}</td>
+        <td class="pair">
+          ${esc(pairName(teams[0]))}
+          ${state.mode==='manual' ? `<div style="margin-top:5px"><select data-kind="manual" data-hole="${h}">${manualOptions(state.holes[h].manualPair)}</select></div>` : ''}
+        </td>
+        <td class="point"><input type="number" inputmode="numeric" step="1"
+          data-kind="point" data-hole="${h}" value="${esc(pRaw)}" placeholder="0"></td>
+        <td class="pair">${esc(pairName(teams[1]))}</td>
+        <td><strong>${fmtPoint(-p)}</strong></td>
+      </tr>`;
+
+      if(h===8){
+        html += `<tr class="outrow"><td>OUT</td><td colspan="9">前半9H</td></tr>`;
+      }
+    }
+    document.getElementById('tbody').innerHTML=html;
+  }
+
+  function totals(){
+    const game=[0,0,0,0];
+    const strokes=[0,0,0,0];
+    for(let h=0; h<18; h++){
+      for(let p=0;p<4;p++){
+        const s=validScore(h,p);
+        if(s!==null) strokes[p]+=s;
+      }
+      const raw=state.holes[h].point;
+      const v=raw==='' ? 0 : Number(raw)||0;
+      const tm=teamsForHole(h);
+      tm[0].forEach(p=>game[p]+=v);
+      tm[1].forEach(p=>game[p]-=v);
+    }
+    return {game,strokes};
+  }
+
+  function renderTotals(){
+    const {game,strokes}=totals();
+    document.getElementById('gameTotals').innerHTML=state.names.map((n,i)=>`
+      <div class="sumcard"><div class="sumname">${esc(n)}</div><div class="sumval">${fmtPoint(game[i])}</div></div>
+    `).join('');
+    document.getElementById('strokeTotals').innerHTML=state.names.map((n,i)=>`
+      <div class="sumcard"><div class="sumname">${esc(n)}</div><div class="sumval">${strokes[i]}</div></div>
+    `).join('');
+  }
+
+  function renderNextPair(){
+    const el=document.getElementById('nextPair');
+    if(state.mode==='manual'){
+      el.innerHTML='<strong>任意モード：</strong> 各ホールの「ペアA」欄で、そのホールの組み合わせを指定してください。';
+      return;
+    }
+    let target=0;
+    for(let h=0; h<18; h++){
+      if(!completeHole(h)){ target=h; break; }
+      target=Math.min(h+1,17);
+    }
+    const tm=teamsForHole(target);
+    el.innerHTML=`<strong>${target+1}H のペア：</strong> ${esc(pairName(tm[0]))}　vs　${esc(pairName(tm[1]))}`;
+  }
+
+  function renderNames(){
+    state.names.forEach((n,i)=>{
+      const el=document.getElementById('name'+i);
+      if(document.activeElement!==el) el.value=n;
+    });
+    document.querySelectorAll('input[name="mode"]').forEach(r=>r.checked=(r.value===state.mode));
+  }
+
+  function render(){
+    renderNames();
+    renderHeader();
+    renderRows();
+    renderTotals();
+    renderNextPair();
+  }
+
+  document.addEventListener('input',e=>{
+    const t=e.target;
+    if(t.id && t.id.startsWith('name')){
+      const i=Number(t.id.replace('name',''));
+      state.names[i]=t.value || `プレイヤー${i+1}`;
+      save();
+      renderHeader(); renderRows(); renderTotals(); renderNextPair();
+      return;
+    }
+    const kind=t.dataset.kind;
+    if(kind==='score'){
+      state.holes[Number(t.dataset.hole)].strokes[Number(t.dataset.player)]=t.value;
+      save(); renderRows(); renderTotals(); renderNextPair();
+    } else if(kind==='point'){
+      state.holes[Number(t.dataset.hole)].point=t.value;
+      save(); renderRows(); renderTotals();
+    }
+  });
+
+  document.addEventListener('change',e=>{
+    const t=e.target;
+    if(t.name==='mode'){
+      state.mode=t.value;
+      save(); render();
+    } else if(t.dataset.kind==='manual'){
+      state.holes[Number(t.dataset.hole)].manualPair=Number(t.value);
+      save(); renderRows(); renderTotals();
+    }
+  });
+
+  document.getElementById('saveBtn').addEventListener('click',()=>save(true));
+  document.getElementById('newBtn').addEventListener('click',()=>{
+    if(confirm('現在の入力内容を消して、新しいラウンドを開始しますか？')){
+      state=defaultState(); save(); render();
+    }
+  });
+
+  render();
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+  }
+})();
+</script>
+</body>
+</html>
