@@ -6,62 +6,171 @@
   <meta name="theme-color" content="#0b6b3a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Golf Pair">
+  <meta name="apple-mobile-web-app-title" content="ラスベガス">
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <title>4人ゴルフ ペアゲーム</title>
+  <title>ラスベガス｜4人ゴルフ ペアゲーム</title>
+  
   <style>
     :root{
-      --bg:#f4f7f4; --card:#fff; --line:#d7dfd8; --text:#172019; --muted:#657168;
-      --green:#0b6b3a; --green2:#e7f4ec; --red:#b3261e; --shadow:0 6px 24px rgba(0,0,0,.06);
+      --bg:#eef9ef;
+      --card:#ffffff;
+      --line:#cfe3d3;
+      --text:#183326;
+      --muted:#688072;
+      --green:#087a46;
+      --green-dark:#075f38;
+      --green2:#e7f7eb;
+      --lime:#b9e65d;
+      --yellow:#ffd94a;
+      --red:#b3261e;
+      --shadow:0 10px 28px rgba(19,91,52,.10);
     }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+    html{background:var(--bg)}
+    body{
+      margin:0;color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+      background:
+        radial-gradient(circle at 18% 4%, rgba(185,230,93,.26), transparent 24%),
+        linear-gradient(180deg,#dff4ff 0 150px,#eef9ef 150px 100%);
+    }
     .app{max-width:1180px;margin:auto;padding:12px 12px 40px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+    .hero{
+      position:relative;overflow:hidden;
+      background:linear-gradient(135deg,#0a8a4f,#06663b 70%);
+      color:#fff;border-radius:24px;padding:18px 18px 16px;margin-bottom:12px;
+      box-shadow:0 12px 30px rgba(6,102,59,.22);
+    }
+    .hero:before{
+      content:"";position:absolute;left:-8%;right:-8%;bottom:-44px;height:100px;
+      border-radius:50%;background:linear-gradient(180deg,#7fd05d,#4caf50);
+      opacity:.95;
+    }
+    .hero:after{
+      content:"⛳";position:absolute;right:18px;bottom:8px;font-size:62px;
+      filter:drop-shadow(0 4px 7px rgba(0,0,0,.13));transform:rotate(-4deg)
+    }
+    .hero-inner{position:relative;z-index:2;display:flex;align-items:center;gap:12px}
+    .ball{
+      width:54px;height:54px;border-radius:50%;background:#fff;flex:0 0 auto;
+      box-shadow:inset -8px -8px 14px rgba(0,0,0,.08),0 5px 10px rgba(0,0,0,.15);
+      position:relative;
+    }
+    .ball:before{
+      content:"";position:absolute;inset:8px;border-radius:50%;
+      background:
+        radial-gradient(circle at 8px 8px,#d8ddd8 0 2px,transparent 2.4px),
+        radial-gradient(circle at 22px 11px,#d8ddd8 0 2px,transparent 2.4px),
+        radial-gradient(circle at 14px 26px,#d8ddd8 0 2px,transparent 2.4px),
+        radial-gradient(circle at 30px 27px,#d8ddd8 0 2px,transparent 2.4px);
+    }
+    .hero h1{font-size:25px;margin:0;letter-spacing:.04em}
+    .hero p{margin:3px 0 0;font-size:12px;opacity:.9}
+    .card{
+      background:rgba(255,255,255,.97);border:1px solid var(--line);
+      border-radius:20px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px
+    }
     h1{font-size:22px;margin:0 0 10px}
-    h2{font-size:18px;margin:0 0 10px}
+    h2{font-size:18px;margin:0 0 10px;display:flex;align-items:center;gap:7px}
+    h2:before{content:"";width:7px;height:22px;border-radius:5px;background:linear-gradient(var(--green),var(--lime))}
     .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-    .namebox label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+    .namebox>div{background:#f6fbf7;border:1px solid #deebe0;border-radius:14px;padding:8px}
+    .namebox label{font-size:12px;color:var(--green-dark);font-weight:800;display:block;margin-bottom:4px}
     input,select,button{font:inherit}
-    input[type="text"],input[type="number"],select{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px}
-    .mode{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
+    input[type="text"],input[type="number"],select{
+      width:100%;border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px;
+      outline:none;transition:.18s
+    }
+    input:focus,select:focus{border-color:#69b97d;box-shadow:0 0 0 3px rgba(105,185,125,.16)}
+    .mode{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .mode label{
+      background:#eff9f2;border:1px solid #c9e4d0;border-radius:999px;padding:8px 12px;
+      font-weight:700;color:#145b37
+    }
     .note{font-size:13px;color:var(--muted);line-height:1.5;margin-top:10px}
-    .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px}
+    .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px}
     table{border-collapse:collapse;min-width:1120px;width:100%;background:#fff}
     th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px;text-align:center;vertical-align:middle}
-    th{background:#eef4ef;font-size:12px;position:sticky;top:0;z-index:3}
-    th:first-child,td:first-child{position:sticky;left:0;z-index:2;background:#f8fbf8;font-weight:700}
-    th:first-child{z-index:4}
+    th{
+      background:linear-gradient(180deg,#0c814b,#096d40);color:#fff;
+      font-size:12px;position:sticky;top:0;z-index:3
+    }
+    th:first-child,td:first-child{position:sticky;left:0;z-index:2;background:#f2faf4;font-weight:800}
+    th:first-child{z-index:4;background:#075f38;color:#fff}
+    tbody tr:nth-child(even) td:not(:first-child){background:#fbfefb}
     td.score input{width:62px;text-align:center;padding:8px 4px}
-    td.point input{width:74px;text-align:center;padding:8px 4px;font-weight:700}
-    .pair{font-weight:700;min-width:160px}
+    td.point input{width:74px;text-align:center;padding:8px 4px;font-weight:800}
+    .pair{font-weight:800;min-width:160px;color:#155d39}
     .rank{font-size:11px;min-width:210px;text-align:left;line-height:1.5}
-    .outrow td{background:#f3f5f3;font-weight:700}
+    .outrow td{background:#e8f5ea!important;font-weight:800;color:#145b37}
     .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-    .sumcard{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+    .sumcard{
+      border:1px solid #cae4d0;border-radius:16px;padding:12px;text-align:center;
+      background:linear-gradient(180deg,#fff,#f1faf3)
+    }
     .sumname{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .sumval{font-size:24px;font-weight:800;margin-top:3px}
+    .sumval{font-size:27px;font-weight:900;margin-top:3px;color:var(--green-dark)}
     .toolbar{display:flex;gap:8px;flex-wrap:wrap}
-    button{border:0;border-radius:10px;padding:10px 14px;font-weight:700}
-    .primary{background:var(--green);color:#fff}
+    button{
+      border:0;border-radius:12px;padding:11px 15px;font-weight:800;
+      box-shadow:0 4px 10px rgba(0,0,0,.05)
+    }
+    .primary{background:linear-gradient(180deg,#0b8b50,#076b40);color:#fff}
     .secondary{background:#eef1ee;color:var(--text)}
-    .danger{background:#fff0ef;color:var(--red)}
+    .danger{background:#fff1f0;color:var(--red);border:1px solid #f2d0cd}
     .status{font-size:12px;color:var(--muted);margin-left:auto;align-self:center}
-    .nextbox{background:var(--green2);border:1px solid #bfdcc8;border-radius:12px;padding:10px;margin-top:10px;font-size:14px}
+    .nextbox{
+      background:linear-gradient(135deg,#ebf9ee,#f7fff4);border:1px solid #b9dec4;
+      border-radius:14px;padding:11px;margin-top:10px;font-size:14px
+    }
+    .nextbox strong{color:#096d40}
+    .goods-ad{margin-top:14px}
+    .goods-ad-card{
+      background:#fff;border:1px solid var(--line);border-radius:20px;
+      box-shadow:var(--shadow);padding:10px;overflow:hidden
+    }
+    .goods-ad-link{display:block;text-decoration:none;color:inherit}
+    .goods-ad-img{display:block;width:100%;height:auto;border-radius:14px}
+    .goods-ad-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .goods-ad-actions a{
+      flex:1;min-width:220px;text-align:center;text-decoration:none;border-radius:12px;
+      padding:12px 14px;font-weight:900
+    }
+    .goods-site-btn{background:#086e40;color:#fff}
+    .goods-line-btn{background:#06c755;color:#fff}
+    .goods-ad-note{font-size:11px;color:var(--muted);margin-top:8px;text-align:center}
+    .footer-grass{
+      text-align:center;color:#2c6c43;font-size:12px;padding:6px 0 4px
+    }
     @media(max-width:700px){
+      body{background:linear-gradient(180deg,#dff4ff 0 130px,#eef9ef 130px 100%)}
       .grid4,.summary{grid-template-columns:repeat(2,1fr)}
       .app{padding-left:8px;padding-right:8px}
-      .card{padding:10px;border-radius:14px}
+      .card{padding:10px;border-radius:16px}
+      .hero{border-radius:19px;padding:14px}
+      .hero h1{font-size:22px}
+      .ball{width:46px;height:46px}
       h1{font-size:20px}
       .status{width:100%;margin-left:0}
+      .goods-ad-actions a{min-width:0}
     }
   </style>
+
 </head>
 <body>
 <div class="app">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="ball" aria-hidden="true"></div>
+      <div>
+        <h1>ラスベガス</h1>
+        <p>4人で楽しむ ゴルフ・ペアゲーム ⛳</p>
+      </div>
+    </div>
+  </div>
   <div class="card">
-    <h1>4人ゴルフ ペアゲーム</h1>
+    <h2>プレイヤー設定</h2>
     <div class="grid4 namebox">
       <div><label>くじ1番</label><input id="name0" type="text"></div>
       <div><label>くじ2番</label><input id="name1" type="text"></div>
@@ -96,12 +205,24 @@
     <div id="strokeTotals" class="summary"></div>
   </div>
 
+  <div class="goods-ad goods-ad-card" aria-label="GOODS MONSTER 広告">
+    <a class="goods-ad-link" href="https://originalgoods-maker.com/" target="_blank" rel="noopener noreferrer" aria-label="グッズモンスター ノベルティ公式サイトを開く">
+      <img class="goods-ad-img" src="./goods-monster-banner.png" alt="GOODS MONSTER グッズモンスター ノベルティ オリジナルグッズ・ゴルフコンペ記念品">
+    </a>
+    <div class="goods-ad-actions">
+      <a class="goods-site-btn" href="https://originalgoods-maker.com/" target="_blank" rel="noopener noreferrer">グッズモンスター　ノベルティ</a>
+      <a class="goods-line-btn" href="https://line.me/ti/p/ku4gIIrtGE" target="_blank" rel="noopener noreferrer">LINEで問い合わせ</a>
+    </div>
+    <div class="goods-ad-note">株式会社リオントレーディングジャパン　TEL 078-382-1581</div>
+  </div>
+
   <div class="card toolbar">
     <button id="saveBtn" class="primary">保存</button>
     <button id="newBtn" class="danger">新しいラウンド</button>
     <span id="saveStatus" class="status">自動保存 ON</span>
   </div>
 </div>
+<div class="footer-grass">⛳ Nice Shot!　今日も楽しくラウンド！</div>
 
 <script>
 (() => {

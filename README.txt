@@ -1,32 +1,31 @@
-# 4人ゴルフ ペアゲーム PWA
+# ラスベガス｜4人ゴルフ ペアゲーム 最終版
 
-## いちばん簡単な公開方法（GitHub Pages）
-1. GitHubで新しいリポジトリを作成します。
-2. このフォルダ内の5ファイルを全部アップロードします。
-   - index.html
-   - manifest.json
-   - service-worker.js
-   - icon-192.png
-   - icon-512.png
-3. GitHubのリポジトリで Settings → Pages を開きます。
-4. Build and deployment の Source を「Deploy from a branch」にします。
-5. Branch を「main」、Folder を「/(root)」にして Save。
-6. 数分後に表示されるURLをiPhoneのSafariで開きます。
-7. Safariの共有ボタン →「ホーム画面に追加」。
+GitHub Pages にアップロードするファイル一式です。
+
+## アップロードするファイル
+- index.html
+- manifest.json
+- service-worker.js
+- icon-192.png
+- icon-512.png
+- goods-monster-banner.png
 
 ## 主な機能
-- 4人の名前入力と表ヘッダー自動連動
-- 規則モード／任意モード
-- 18Hの実スコア入力
-- 同点時は過去ホールへ遡って順位決定
-- 規則モードで次ホールのペア自動表示
-- 任意モードで毎ホールのペア指定
-- ペアA得点を入力するとペアBは自動で逆符号
-- 4人のゲーム得点累計
-- 4人の実スコア合計
-- localStorageによる自動保存
-- PWA / オフライン対応
+- 4人プレイヤー名入力
+- 規則モード / 任意モード
+- 18ホールの実スコア入力
+- 前ホールから遡る同点順位判定
+- 3パターンの自動ペア組み
+- ペアA得点入力 → ペアBは自動反転
+- ゲーム得点累計
+- 実スコア合計
+- 自動保存
+- iPhoneホーム画面追加対応
+- オフライン対応
+- GOODS MONSTER 広告バナー
+- GOODS MONSTER公式サイトへのリンク
+- LINE問い合わせリンク
 
-## 注意
-同じURLでも、入力データは各iPhone端末のブラウザ内に保存されます。
-端末間で同じラウンドをリアルタイム共有する機能は入っていません。
+## GitHub更新
+既存の golf-pair-game リポジトリへ6ファイルをアップロードして上書きし、
+Commit changes を押してください。
