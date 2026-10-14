@@ -1,4 +1,4 @@
-const CACHE='golf-pair-pwa-final-v1';
+const CACHE='golf-pair-pwa-sign-button-v3';
 const ASSETS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./goods-monster-banner.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
 self.addEventListener('activate',e=>e.waitUntil(

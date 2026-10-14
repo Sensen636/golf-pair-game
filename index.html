@@ -100,7 +100,11 @@
     th:first-child{z-index:4;background:#075f38;color:#fff}
     tbody tr:nth-child(even) td:not(:first-child){background:#fbfefb}
     td.score input{width:62px;text-align:center;padding:8px 4px}
-    td.point input{width:74px;text-align:center;padding:8px 4px;font-weight:800}
+    td.point input{width:60px;text-align:center;padding:8px 3px;font-weight:800}
+    .point-entry{display:flex;align-items:center;justify-content:center;gap:4px;min-width:148px}
+    .sign-button{padding:8px 9px;border:1px solid #b4d7be;background:#f1f8f2;color:#075f38;border-radius:9px;font-weight:900;box-shadow:none;min-width:38px}
+    .sign-button.negative{background:#fff0ec;color:#a72720;border-color:#f2c4bb}
+    .sign-button:focus-visible{outline:2px solid #087a46;outline-offset:2px}
     .pair{font-weight:800;min-width:160px;color:#155d39}
     .rank{font-size:11px;min-width:210px;text-align:left;line-height:1.5}
     .outrow td{background:#e8f5ea!important;font-weight:800;color:#145b37}
@@ -352,8 +356,10 @@
           ${esc(pairName(teams[0]))}
           ${state.mode==='manual' ? `<div style="margin-top:5px"><select data-kind="manual" data-hole="${h}">${manualOptions(state.holes[h].manualPair)}</select></div>` : ''}
         </td>
-        <td class="point"><input type="number" inputmode="numeric" step="1"
-          data-kind="point" data-hole="${h}" value="${esc(pRaw)}" placeholder="0"></td>
+        <td class="point"><div class="point-entry">
+          <button type="button" class="sign-button ${state.holes[h].pointSign===-1 || Number(pRaw)<0?'negative':''}" data-kind="sign" data-hole="${h}" aria-label="ペアAの得点のプラス・マイナスを切り替える">${state.holes[h].pointSign===-1 || Number(pRaw)<0?'−':'＋'}</button>
+          <input type="number" inputmode="numeric" min="0" step="1" aria-label="ペアAの得点（数字のみ）" data-kind="point" data-hole="${h}" value="${pRaw===''?'':Math.abs(Number(pRaw)||0)}" placeholder="0">
+          </div></td>
         <td class="pair">${esc(pairName(teams[1]))}</td>
         <td><strong>${fmtPoint(-p)}</strong></td>
       </tr>`;
@@ -437,9 +443,25 @@
       state.holes[Number(t.dataset.hole)].strokes[Number(t.dataset.player)]=t.value;
       save(); renderRows(); renderTotals(); renderNextPair();
     } else if(kind==='point'){
-      state.holes[Number(t.dataset.hole)].point=t.value;
-      save(); renderRows(); renderTotals();
+      const h=Number(t.dataset.hole);
+      const old=Number(state.holes[h].point)||0;
+      const sign=state.holes[h].pointSign === -1 || old<0 ? -1 : 1;
+      state.holes[h].point=t.value===''?'':String(sign*(Math.abs(Number(t.value))||0));
+      save(); renderTotals();
+      const row=t.closest('tr');
+      if(row) row.lastElementChild.querySelector('strong').textContent=fmtPoint(-(Number(state.holes[h].point)||0));
     }
+  });
+
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('button[data-kind="sign"]');
+    if(!btn) return;
+    const h=Number(btn.dataset.hole);
+    const entry=state.holes[h];
+    const sign=entry.pointSign===-1 || Number(entry.point)<0 ? -1 : 1;
+    entry.pointSign=-sign;
+    if(entry.point!=='') entry.point=String((Math.abs(Number(entry.point))||0)*entry.pointSign);
+    save(); renderRows(); renderTotals();
   });
 
   document.addEventListener('change',e=>{
