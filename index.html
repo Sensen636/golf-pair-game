@@ -108,6 +108,10 @@
     .pair{font-weight:800;min-width:160px;color:#155d39}
     .rank{font-size:11px;min-width:210px;text-align:left;line-height:1.5}
     .outrow td{background:#e8f5ea!important;font-weight:800;color:#145b37}
+    .repeat-head td{background:#0b7545!important;color:white!important;font-size:12px;font-weight:800}
+    .repeat-head td:first-child{background:#075f38!important;color:white!important}
+    .pair-override{display:block;margin-top:5px;max-width:220px;width:100%;font-size:12px;padding:6px}
+    .override-label{font-size:11px;color:#b35b15;margin-top:3px}
     .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
     .sumcard{
       border:1px solid #cae4d0;border-radius:16px;padding:12px;text-align:center;
@@ -185,7 +189,7 @@
       <label><input type="radio" name="mode" value="rule"> 規則モード</label>
       <label><input type="radio" name="mode" value="manual"> 任意モード</label>
     </div>
-    <div class="note">規則モードでは、次ホールの順位は直前ホールのスコア順。同点ならその前のホール、さらに同点ならさらに前へ遡り、最後まで同じなら最初のくじ順で決めます。</div>
+    <div class="note">規則モードでも各ホールの「ペアA」欄から組み合わせを手動変更できます。「自動（規則どおり）」で元に戻せます。次ホールの順位は直前ホールのスコア順。同点ならその前のホール、さらに同点ならさらに前へ遡り、最後まで同じなら最初のくじ順で決めます。</div>
     <div id="nextPair" class="nextbox"></div>
   </div>
 
@@ -234,7 +238,7 @@
   const defaultState = () => ({
     mode:'rule',
     names:['プレイヤー1','プレイヤー2','プレイヤー3','プレイヤー4'],
-    holes:Array.from({length:18},()=>({strokes:['','','',''],point:'',manualPair:0}))
+    holes:Array.from({length:18},()=>({strokes:['','','',''],point:'',manualPair:0,ruleOverride:null}))
   });
 
   let state = load();
@@ -290,6 +294,11 @@
   }
 
   function teamsForHole(h){
+    if(state.mode==='rule' && Number.isInteger(state.holes[h].ruleOverride) && state.holes[h].ruleOverride>=0 && state.holes[h].ruleOverride<6){
+      const index=state.holes[h].ruleOverride;
+      const pair=patterns[index%3];
+      return index<3 ? pair : [pair[1],pair[0]];
+    }
     if(state.mode==='manual') return patterns[state.holes[h].manualPair];
     const order=rankingForHole(h);
     const pat=patterns[h%3];
@@ -321,6 +330,21 @@
     }).join('');
   }
 
+  function ruleOptions(selected){
+    const opts=['<option value="auto">自動（規則どおり）</option>'];
+    for(let i=0;i<6;i++){
+      const pair=patterns[i%3];
+      const t=i<3?pair:[pair[1],pair[0]];
+      opts.push(`<option value="${i}" ${selected===i?'selected':''}>A: ${esc(pairName(t[0]))} ／ B: ${esc(pairName(t[1]))}</option>`);
+    }
+    if(selected===null || selected===undefined) opts[0]='<option value="auto" selected>自動（規則どおり）</option>';
+    return opts.join('');
+  }
+
+  function repeatedNamesRow(){
+    return `<tr class="repeat-head"><td>IN</td>${state.names.map(n=>`<td>${esc(n)}</td>`).join('')}<td>次順位</td><td>ペアA</td><td>A得点</td><td>ペアB</td><td>B得点</td></tr>`;
+  }
+
   function renderHeader(){
     document.getElementById('thead').innerHTML = `
       <tr>
@@ -337,6 +361,7 @@
   function renderRows(){
     let html='';
     for(let h=0; h<18; h++){
+      if(h===9) html += repeatedNamesRow();
       const teams=teamsForHole(h);
       const pRaw=state.holes[h].point;
       const p = pRaw==='' ? 0 : Number(pRaw)||0;
@@ -354,7 +379,7 @@
         <td class="rank">${esc(next)}</td>
         <td class="pair">
           ${esc(pairName(teams[0]))}
-          ${state.mode==='manual' ? `<div style="margin-top:5px"><select data-kind="manual" data-hole="${h}">${manualOptions(state.holes[h].manualPair)}</select></div>` : ''}
+          ${state.mode==='manual' ? `<div style="margin-top:5px"><select class="pair-override" data-kind="manual" data-hole="${h}">${manualOptions(state.holes[h].manualPair)}</select></div>` : `<select class="pair-override" aria-label="${h+1}ホールのペアを変更" data-kind="rule-override" data-hole="${h}">${ruleOptions(state.holes[h].ruleOverride)}</select>${Number.isInteger(state.holes[h].ruleOverride)?'<div class="override-label">手動変更中（自動に戻せます）</div>':''}`}
         </td>
         <td class="point"><div class="point-entry">
           <button type="button" class="sign-button ${state.holes[h].pointSign===-1 || Number(pRaw)<0?'negative':''}" data-kind="sign" data-hole="${h}" aria-label="ペアAの得点のプラス・マイナスを切り替える">${state.holes[h].pointSign===-1 || Number(pRaw)<0?'−':'＋'}</button>
@@ -472,6 +497,10 @@
     } else if(t.dataset.kind==='manual'){
       state.holes[Number(t.dataset.hole)].manualPair=Number(t.value);
       save(); renderRows(); renderTotals();
+    } else if(t.dataset.kind==='rule-override'){
+      const h=Number(t.dataset.hole);
+      state.holes[h].ruleOverride=t.value==='auto'?null:Number(t.value);
+      save(); renderRows(); renderTotals(); renderNextPair();
     }
   });
 
