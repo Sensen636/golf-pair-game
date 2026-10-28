@@ -1,4 +1,4 @@
-const CACHE='golf-pair-pwa-pair-override-v4';
+const CACHE='golf-pair-pwa-display-order-v5';
 const ASSETS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./goods-monster-banner.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
 self.addEventListener('activate',e=>e.waitUntil(

@@ -185,6 +185,8 @@
       <div><label>くじ3番</label><input id="name2" type="text"></div>
       <div><label>くじ4番</label><input id="name3" type="text"></div>
     </div>
+    <div class="note">スコアカードの表示順（くじ番号・ペア判定には影響しません）</div>
+    <div class="grid4 namebox" id="displayOrderControls"></div>
     <div class="mode">
       <label><input type="radio" name="mode" value="rule"> 規則モード</label>
       <label><input type="radio" name="mode" value="manual"> 任意モード</label>
@@ -238,6 +240,7 @@
   const defaultState = () => ({
     mode:'rule',
     names:['プレイヤー1','プレイヤー2','プレイヤー3','プレイヤー4'],
+    displayOrder:[0,1,2,3],
     holes:Array.from({length:18},()=>({strokes:['','','',''],point:'',manualPair:0,ruleOverride:null}))
   });
 
@@ -255,6 +258,7 @@
       if(!raw) return defaultState();
       const s = JSON.parse(raw);
       if(!s || !Array.isArray(s.holes) || s.holes.length!==18) return defaultState();
+      if(!Array.isArray(s.displayOrder) || s.displayOrder.length!==4 || [...s.displayOrder].sort().join(',')!=='0,1,2,3') s.displayOrder=[0,1,2,3];
       return s;
     }catch(e){ return defaultState(); }
   }
@@ -341,15 +345,21 @@
     return opts.join('');
   }
 
+  function displayOrder(){ return state.displayOrder || [0,1,2,3]; }
+
+  function renderOrderControls(){
+    document.getElementById('displayOrderControls').innerHTML=displayOrder().map((pl,pos)=>`<div><label>表示${pos+1}列目</label><select data-kind="display-order" data-pos="${pos}">${[0,1,2,3].map(i=>`<option value="${i}" ${i===pl?'selected':''}>${esc(state.names[i])}（くじ${i+1}番）</option>`).join('')}</select></div>`).join('');
+  }
+
   function repeatedNamesRow(){
-    return `<tr class="repeat-head"><td>IN</td>${state.names.map(n=>`<td>${esc(n)}</td>`).join('')}<td>次順位</td><td>ペアA</td><td>A得点</td><td>ペアB</td><td>B得点</td></tr>`;
+    return `<tr class="repeat-head"><td>IN</td>${displayOrder().map(i=>`<td>${esc(state.names[i])}</td>`).join('')}<td>次順位</td><td>ペアA</td><td>A得点</td><td>ペアB</td><td>B得点</td></tr>`;
   }
 
   function renderHeader(){
     document.getElementById('thead').innerHTML = `
       <tr>
         <th>H</th>
-        ${state.names.map(n=>`<th>${esc(n || '')}</th>`).join('')}
+        ${displayOrder().map(i=>`<th>${esc(state.names[i] || '')}</th>`).join('')}
         <th>次順位</th>
         <th>ペアA</th>
         <th>A得点</th>
@@ -372,7 +382,7 @@
 
       html += `<tr>
         <td>${h+1}</td>
-        ${[0,1,2,3].map(pl=>`
+        ${displayOrder().map(pl=>`
           <td class="score"><input type="number" inputmode="numeric" min="1" max="30"
             data-kind="score" data-hole="${h}" data-player="${pl}" value="${esc(state.holes[h].strokes[pl])}" placeholder="-"></td>
         `).join('')}
@@ -415,11 +425,11 @@
 
   function renderTotals(){
     const {game,strokes}=totals();
-    document.getElementById('gameTotals').innerHTML=state.names.map((n,i)=>`
-      <div class="sumcard"><div class="sumname">${esc(n)}</div><div class="sumval">${fmtPoint(game[i])}</div></div>
+    document.getElementById('gameTotals').innerHTML=displayOrder().map(i=>`
+      <div class="sumcard"><div class="sumname">${esc(state.names[i])}</div><div class="sumval">${fmtPoint(game[i])}</div></div>
     `).join('');
-    document.getElementById('strokeTotals').innerHTML=state.names.map((n,i)=>`
-      <div class="sumcard"><div class="sumname">${esc(n)}</div><div class="sumval">${strokes[i]}</div></div>
+    document.getElementById('strokeTotals').innerHTML=displayOrder().map(i=>`
+      <div class="sumcard"><div class="sumname">${esc(state.names[i])}</div><div class="sumval">${strokes[i]}</div></div>
     `).join('');
   }
 
@@ -448,6 +458,7 @@
 
   function render(){
     renderNames();
+    renderOrderControls();
     renderHeader();
     renderRows();
     renderTotals();
@@ -460,7 +471,7 @@
       const i=Number(t.id.replace('name',''));
       state.names[i]=t.value || `プレイヤー${i+1}`;
       save();
-      renderHeader(); renderRows(); renderTotals(); renderNextPair();
+      renderOrderControls(); renderHeader(); renderRows(); renderTotals(); renderNextPair();
       return;
     }
     const kind=t.dataset.kind;
@@ -493,6 +504,11 @@
     const t=e.target;
     if(t.name==='mode'){
       state.mode=t.value;
+      save(); render();
+    } else if(t.dataset.kind==='display-order'){
+      const pos=Number(t.dataset.pos), newPl=Number(t.value);
+      const oldPos=displayOrder().indexOf(newPl);
+      [state.displayOrder[pos],state.displayOrder[oldPos]]=[state.displayOrder[oldPos],state.displayOrder[pos]];
       save(); render();
     } else if(t.dataset.kind==='manual'){
       state.holes[Number(t.dataset.hole)].manualPair=Number(t.value);
